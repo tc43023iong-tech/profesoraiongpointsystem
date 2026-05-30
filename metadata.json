@@ -1,0 +1,6 @@
+{
+  "name": "Classroom Point Reward System",
+  "description": "A gamified classroom point and reward system featuring customizable Pokemon avatars and cute stickers, based on Miss Iong's Classroom.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
