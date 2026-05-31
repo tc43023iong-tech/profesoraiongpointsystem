@@ -602,12 +602,12 @@ export default function App() {
               onClick={() => setIsClassDropdownOpen(!isClassDropdownOpen)}
               className="px-5 py-3 bg-[#fffefc] border-4 border-rose-450 rounded-2xl flex items-center space-x-2 shadow-[4px_4px_0px_0px_#ec4899] hover:scale-105 active:scale-95 transition-all text-sm font-black text-rose-650"
             >
-              <span className="text-base font-sans">🏫 {currentClass === 'P5A' ? 'P5A 班級小木屋' : currentClass === 'P5B' ? 'P5B 班級小木屋' : 'P5C 班級小木屋'}</span>
+              <span className="text-base font-sans">🏫 {currentClass}</span>
               <ChevronDown className="w-4 h-4 stroke-[3px] text-rose-500" />
             </button>
 
             {isClassDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-[#fffefc] border-3 border-rose-500 rounded-2xl shadow-xl z-30 overflow-hidden animate-cute-pop">
+              <div className="absolute right-0 mt-2 w-36 bg-[#fffefc] border-3 border-rose-500 rounded-2xl shadow-xl z-30 overflow-hidden animate-cute-pop">
                 {['P5A', 'P5B', 'P5C'].map((id) => (
                   <button
                     key={id}
@@ -615,11 +615,11 @@ export default function App() {
                       setCurrentClass(id as ClassID);
                       setIsClassDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-5 py-3.5 text-sm font-black border-b border-rose-100 hover:bg-rose-50/50 transition-colors flex items-center gap-2 ${
+                    className={`w-full text-left px-5 py-3 text-sm font-black border-b border-rose-100 hover:bg-rose-50/50 transition-colors flex items-center gap-2 ${
                       currentClass === id ? 'text-rose-600 bg-rose-50' : 'text-slate-705'
                     }`}
                   >
-                    <span>🎨 {id} 班級</span>
+                    <span>🎨 {id}</span>
                   </button>
                 ))}
               </div>
@@ -633,13 +633,13 @@ export default function App() {
             title="把小朋友的加減分成績單存起來"
           >
             <Download className="w-4 h-4 stroke-[3px] text-emerald-650" />
-            <span>💾 備份存檔 (Export)</span>
+            <span>備份</span>
           </button>
 
           {/* Import File Button wrapper */}
           <label className="px-4 py-3 bg-[#ecfeff] hover:bg-cyan-100 border-3 border-slate-800 text-cyan-850 text-xs font-black rounded-2xl shadow-[3.5px_3.5px_0px_0px_#3f3935] hover:shadow-[1.5px_1.5px_0px_0px_#3f3935] hover:translate-y-0.5 cursor-pointer transition-all flex items-center space-x-1.5 active:scale-95">
             <Upload className="w-4 h-4 stroke-[3px] text-cyan-650" />
-            <span>📂 載入檔案 (Import)</span>
+            <span>上傳</span>
             <input
               type="file"
               accept=".json"
@@ -680,7 +680,7 @@ export default function App() {
                   : 'bg-white text-slate-750 border-slate-300 hover:border-rose-400 hover:scale-105 shadow-[2.5px_2.5px_0px_0px_#cbd5e0]'
               }`}
             >
-              👑 總分榜 / 高到低
+              高到低
             </button>
 
             <button
@@ -691,7 +691,7 @@ export default function App() {
                   : 'bg-white text-slate-755 border-slate-300 hover:border-rose-400 hover:scale-105 shadow-[2.5px_2.5px_0px_0px_#cbd5e0]'
               }`}
             >
-              ⚡ 待改進榜 😈
+              😈
             </button>
 
             {/* Weekly Leaderboard activate */}
