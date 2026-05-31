@@ -93,6 +93,7 @@ export default function App() {
 
   // Modal display states
   const [selectedDetailStudent, setSelectedDetailStudent] = useState<Student | null>(null);
+  const [detailInitialCategory, setDetailInitialCategory] = useState<'pos' | 'neg'>('pos');
   const [selectedChangeAvatarStudent, setSelectedChangeAvatarStudent] = useState<Student | null>(null);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
   const [isDailySummaryOpen, setIsDailySummaryOpen] = useState<boolean>(false);
@@ -567,15 +568,9 @@ export default function App() {
         <div className="flex items-center space-x-3.5 cursor-pointer">
           <span className="text-5xl animate-bounce duration-1000">🎨</span>
           <div>
-            <span className="highlight-yellow text-sm font-black text-rose-550 px-2 py-0.5 rounded font-playful tracking-widest uppercase mb-1 inline-block">
-              Primary School Joyboard • 小學專用版
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-black font-playful tracking-wider text-[#eb725a] drop-shadow-xs flex items-center gap-1">
-              Miss Iong's Class <span className="text-2xl text-slate-750 font-sans">老師的可愛蠟筆計分板</span> 🖍️
+            <h1 className="text-3xl sm:text-4xl font-black font-playful tracking-wider text-[#eb725a] drop-shadow-xs">
+              Miss Iong's Class 🖍️
             </h1>
-            <p className="text-xs tracking-widest font-heading font-extrabold text-[#fb923c] mt-1.5 flex items-center gap-1.5">
-              <span>★ 用亮麗彩鉛記錄每位小朋友的優秀時刻 ★</span>
-            </p>
           </div>
         </div>
 
@@ -868,7 +863,10 @@ export default function App() {
                   isMultiSelectMode={isMultiSelectMode}
                   isSelected={selectedStudentIds.includes(student.id)}
                   onSelectToggle={handleSelectToggle}
-                  onCardClick={(s) => setSelectedDetailStudent(s)}
+                  onCardClick={(s, cat) => {
+                    setDetailInitialCategory(cat || 'pos');
+                    setSelectedDetailStudent(s);
+                  }}
                   onChangeAvatarClick={(s, e) => {
                     e.stopPropagation();
                     setSelectedChangeAvatarStudent(s);
@@ -882,9 +880,7 @@ export default function App() {
 
       {/* ────────────────── HANDDRAWN GRAPHIC BACKGROUND CREDIT TEXT ────────────────── */}
       <footer className="mt-20 text-center text-xs text-slate-400 font-bold select-none flex items-center justify-center space-x-2">
-        <span>Hand-painted with Love • Miss Iong's Classroom</span>
-        <span>•</span>
-        <span>Made for primary school student engagement</span>
+        <span>Miss Iong's Class</span>
       </footer>
 
       {/* ────────────────── SYSTEM MODALS & CELEBRATION DISPLAYS ────────────────── */}
@@ -893,6 +889,7 @@ export default function App() {
       {selectedDetailStudent && (
         <StudentDetailModal
           student={selectedDetailStudent}
+          initialCategory={detailInitialCategory}
           onApplyScore={({ name, points }) => {
             if (selectedDetailStudent.id === 999) {
               // represents group bulk apply

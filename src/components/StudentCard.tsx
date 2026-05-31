@@ -10,7 +10,7 @@ interface StudentCardProps {
   isMultiSelectMode: boolean;
   isSelected: boolean;
   onSelectToggle: (id: number) => void;
-  onCardClick: (student: Student) => void;
+  onCardClick: (student: Student, initialCategory?: 'pos' | 'neg') => void;
   onChangeAvatarClick: (student: Student, e: React.MouseEvent) => void;
 }
 
@@ -62,7 +62,7 @@ export default function StudentCard({
         if (isMultiSelectMode) {
           onSelectToggle(student.id);
         } else {
-          onCardClick(student);
+          onCardClick(student, 'pos');
         }
       }}
       className={`relative bg-white border-4 border-slate-800 rounded-[28px_16px_28px_20px] p-4 shadow-[6px_6px_0px_0px_#3f3935] transition-all duration-200 cursor-pointer ${
@@ -83,7 +83,7 @@ export default function StudentCard({
         <div className="flex items-center space-x-1 z-10" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={(e) => onChangeAvatarClick(student, e)}
-            className="p-1.5 bg-yellow-105 hover:bg-yellow-200 border-2 border-slate-800 rounded-full transition-all text-slate-700 hover:scale-110 active:scale-95"
+            className="p-1.5 bg-yellow-105 hover:bg-yellow-200 border-2 border-slate-800 rounded-full transition-all text-slate-700 hover:scale-110 active:scale-95 cursor-pointer"
             title="幫學生更換樣子"
           >
             <Palette className="w-4 h-4 text-amber-600 stroke-[2px]" />
@@ -131,20 +131,40 @@ export default function StudentCard({
       </div>
 
       {/* Footer Pill Points: GOOD and CARE */}
-      <div className="mt-3 flex gap-2 justify-around">
-        <div className="flex-1 text-center bg-emerald-50 rounded-xl py-1.5 border-2 border-dashed border-emerald-550 shadow-xs leading-tight">
-          <div className="text-[10px] uppercase tracking-wider text-emerald-800 font-black">👍 加分 GOOD</div>
-          <div className="text-emerald-600 font-extrabold text-sm font-playful mt-0.5">
+      <div className="mt-4 flex gap-2 justify-around" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={(e) => {
+            if (isMultiSelectMode) {
+              onSelectToggle(student.id);
+            } else {
+              e.stopPropagation();
+              onCardClick(student, 'pos');
+            }
+          }}
+          className="flex-1 text-center bg-[#f0fdf4] hover:bg-emerald-100/90 rounded-xl py-1.5 border-2 border-dashed border-emerald-500 shadow-xs leading-tight hover:scale-105 active:scale-95 transition-all cursor-pointer block"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-emerald-800 font-extrabold select-none">👍 加分 GOOD</div>
+          <div className="text-emerald-600 font-black text-sm font-playful mt-0.5">
             +{student.goodScore}
           </div>
-        </div>
+        </button>
 
-        <div className="flex-1 text-center bg-rose-50 rounded-xl py-1.5 border-2 border-dashed border-rose-400 shadow-xs leading-tight">
-          <div className="text-[10px] uppercase tracking-wider text-rose-800 font-black">🚀 待改進 CARE</div>
-          <div className="text-rose-600 font-extrabold text-sm font-playful mt-0.5">
+        <button
+          onClick={(e) => {
+            if (isMultiSelectMode) {
+              onSelectToggle(student.id);
+            } else {
+              e.stopPropagation();
+              onCardClick(student, 'neg');
+            }
+          }}
+          className="flex-1 text-center bg-[#fff5f5] hover:bg-rose-100/90 rounded-xl py-1.5 border-2 border-dashed border-rose-400 shadow-xs leading-tight hover:scale-105 active:scale-95 transition-all cursor-pointer block"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-rose-800 font-extrabold select-none">🚀 待改進 CARE</div>
+          <div className="text-rose-600 font-black text-sm font-playful mt-0.5">
             {student.careScore}
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );

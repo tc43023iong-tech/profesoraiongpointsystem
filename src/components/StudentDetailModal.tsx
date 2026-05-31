@@ -9,6 +9,7 @@ interface StudentDetailModalProps {
   onUndoRecord: (recordId: string) => void;
   onClose: () => void;
   onChangeAvatarClick: () => void;
+  initialCategory?: 'pos' | 'neg';
 }
 
 export default function StudentDetailModal({
@@ -17,10 +18,11 @@ export default function StudentDetailModal({
   onUndoRecord,
   onClose,
   onChangeAvatarClick,
+  initialCategory = 'pos',
 }: StudentDetailModalProps) {
   // Config state
   const [activePane, setActivePane] = useState<'rules' | 'history'>('rules');
-  const [scoreCategory, setScoreCategory] = useState<'pos' | 'neg'>('pos');
+  const [scoreCategory, setScoreCategory] = useState<'pos' | 'neg'>(initialCategory);
   const [manualPoints, setManualPoints] = useState<string>('');
 
   // Handle custom manual numerical input (e.g. +10, -5, 23)
@@ -315,7 +317,7 @@ export default function StudentDetailModal({
  
         {/* Crayon credit message line */}
         <div className="bg-[#fff0eb] px-6 py-3 border-t-6 border-slate-900 text-center text-[10.5px] text-[#ca4d39] font-extrabold tracking-widest font-mono uppercase">
-          ✦ HAND-PAINTED WITH LOVE • MISS IONG'S CLASSROOM ✦
+          ✦ MISS IONG'S CLASS ✦
         </div>
       </div>
     </div>
