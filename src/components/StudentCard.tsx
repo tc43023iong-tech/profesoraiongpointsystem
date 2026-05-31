@@ -65,10 +65,10 @@ export default function StudentCard({
           onCardClick(student, 'pos');
         }
       }}
-      className={`relative bg-white border-4 border-slate-800 rounded-[28px_16px_28px_20px] p-4 shadow-[6px_6px_0px_0px_#3f3935] transition-all duration-200 cursor-pointer ${
+      className={`relative bg-white border border-black/15 rounded-2xl p-4 transition-all duration-200 cursor-pointer ${
         isSelected 
-          ? 'ring-4 ring-pink-400 bg-pink-50/40 border-pink-500 scale-[1.02] shadow-[6px_6px_0px_0px_#ec4899]' 
-          : 'bg-[#fffdfa] hover:-translate-y-1.5 hover:shadow-[8px_8px_0px_0px_#3f3935]'
+          ? 'ring-4 ring-pink-400 bg-pink-50/40 border-pink-500 scale-[1.02]' 
+          : 'bg-[#fffdfa] hover:scale-102 hover:border-black/30'
       } ${tiltClass} overflow-hidden`}
     >
       {/* Top Header Row within Card */}
@@ -123,11 +123,6 @@ export default function StudentCard({
             (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${student.name}`;
           }}
         />
-        {student.pokemonId && (
-          <span className="absolute bottom-1 right-2 text-[9px] text-[#3f3935]/80 bg-[#fffdfa]/90 border border-slate-300 rounded px-1 font-mono font-bold shadow-xs">
-            NO.{student.pokemonId}
-          </span>
-        )}
       </div>
 
       {/* Footer Pill Points: GOOD and CARE */}

@@ -17,6 +17,7 @@ import ResetScoresModal from './components/ResetScoresModal';
 import DrawnStudentsModal from './components/DrawnStudentsModal';
 import DailySummaryModal from './components/DailySummaryModal';
 import KeyCountdownModal from './components/KeyCountdownModal';
+import { FullScreenFX } from './components/FullScreenFX';
 
 // Web audio api playful synthesizer
 function playSimpleSynthSound(type: 'success' | 'warn' | 'bell') {
@@ -24,47 +25,109 @@ function playSimpleSynthSound(type: 'success' | 'warn' | 'bell') {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
     
     if (type === 'bell') {
-      // Play school chime
+      // Play school chime (Westminster Quarters style, warm bell timbre)
       const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
       notes.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.15);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + idx * 0.15);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.15 + 0.6);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + idx * 0.15);
-        osc.stop(ctx.currentTime + idx * 0.15 + 0.61);
+        const playTime = now + idx * 0.20;
+        
+        // Main warm carrier tone
+        const osc1 = ctx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(freq, playTime);
+        
+        // Subtle bell undertone
+        const osc2 = ctx.createOscillator();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(freq * 1.5, playTime); // Perfect fifth harmonic
+        
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, playTime);
+        gainNode.gain.linearRampToValueAtTime(0.12, playTime + 0.05); // Soft strike attack
+        gainNode.gain.exponentialRampToValueAtTime(0.001, playTime + 0.8); // Elegant resonance
+        
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        osc1.start(playTime);
+        osc1.stop(playTime + 0.81);
+        osc2.start(playTime);
+        osc2.stop(playTime + 0.81);
       });
     } else if (type === 'success') {
-      // Mario-like powerup
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(330, ctx.currentTime); // E4
-      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.08); // E5
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.31);
+      // Premium super-cute magical chime reward effect:
+      // A rapid sparkling rising pentatonic sweep (C5 -> E5 -> G5 -> A5 -> C6 -> E6 -> G6)
+      const notes = [523.25, 659.25, 783.99, 880.00, 1046.50, 1318.51, 1567.98];
+      
+      notes.forEach((freq, idx) => {
+        const playTime = now + idx * 0.045; // Ultra-fast cascade (~45ms intervals)
+        const duration = 0.5;
+        
+        // Pure sparkly sine wave
+        const oscChime = ctx.createOscillator();
+        oscChime.type = 'sine';
+        oscChime.frequency.setValueAtTime(freq, playTime);
+        
+        // Subtle warm triangle wave tuned slightly higher for chorus/width
+        const oscWarm = ctx.createOscillator();
+        oscWarm.type = 'triangle';
+        oscWarm.frequency.setValueAtTime(freq + 4, playTime);
+        
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, playTime);
+        gainNode.gain.linearRampToValueAtTime(0.08, playTime + 0.015); // Snap non-click attack
+        gainNode.gain.exponentialRampToValueAtTime(0.001, playTime + duration);
+        
+        oscChime.connect(gainNode);
+        oscWarm.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscChime.start(playTime);
+        oscWarm.start(playTime);
+        oscChime.stop(playTime + duration + 0.01);
+        oscWarm.stop(playTime + duration + 0.01);
+      });
+
+      // Extra bright magic star dust sparkle on peak note
+      const starOsc = ctx.createOscillator();
+      const starGain = ctx.createGain();
+      starOsc.type = 'sine';
+      starOsc.frequency.setValueAtTime(2093.00, now + 0.15); // High C7 shimmer
+      starGain.gain.setValueAtTime(0, now + 0.15);
+      starGain.gain.linearRampToValueAtTime(0.04, now + 0.16);
+      starGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      starOsc.connect(starGain);
+      starGain.connect(ctx.destination);
+      starOsc.start(now + 0.15);
+      starOsc.stop(now + 0.41);
+
     } else {
-      // Buzzer warning down pitch
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.35);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.41);
+      // Pleasant, gentle cartoonish warning downpitch for point deduction
+      // Soft, warm "uh-oh" rather than an aggressive buzzer
+      const notes = [329.63, 261.63]; // E4 down to C4
+      notes.forEach((freq, idx) => {
+        const playTime = now + idx * 0.12;
+        const duration = 0.35;
+        
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle'; // Smooth and soft wave
+        osc.frequency.setValueAtTime(freq, playTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.88, playTime + duration); // Down pitch slide
+        
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, playTime);
+        gainNode.gain.linearRampToValueAtTime(0.12, playTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, playTime + duration);
+        
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        osc.start(playTime);
+        osc.stop(playTime + duration + 0.01);
+      });
     }
   } catch (err) {
     console.warn('Audio synthesis blocked by client policy', err);
@@ -108,11 +171,16 @@ export default function App() {
 
   // Award toast alerts pop
   const [toastAlert, setToastAlert] = useState<{
-    student: Student;
+    student?: Student;
+    studentsList?: Student[];
     itemName: string;
     points: number;
-    recordId: string;
+    recordId?: string;
+    bulkRecordIds?: { studentId: number; recordId: string }[];
   } | null>(null);
+
+  // Full-screen atmospheric effects state (fireworks/confetti & rain)
+  const [fxTrigger, setFxTrigger] = useState<{ type: 'fireworks' | 'rain'; timestamp: number } | null>(null);
 
   // Load students dataset based on currentClass ID on change
   useEffect(() => {
@@ -245,6 +313,13 @@ export default function App() {
     // Play playful synthesized effect
     playSimpleSynthSound(points >= 0 ? 'success' : 'warn');
 
+    // Trigger full-screen fireworks & confetti or warning rain FX
+    if (points > 0) {
+      setFxTrigger({ type: 'fireworks', timestamp: Date.now() });
+    } else if (points < 0) {
+      setFxTrigger({ type: 'rain', timestamp: Date.now() });
+    }
+
     // Trigger full center screen toast poster
     const activeStudent = updated.find((s) => s.id === studentId);
     if (activeStudent) {
@@ -263,9 +338,12 @@ export default function App() {
     
     const timestampStr = new Date().toLocaleString('zh-TW', { hour12: false });
     let updated = [...students];
+    const bulkRecordIds: { studentId: number; recordId: string }[] = [];
 
     selectedStudentIds.forEach((studentId) => {
       const recordId = Math.random().toString(36).substr(2, 9);
+      bulkRecordIds.push({ studentId, recordId });
+
       updated = updated.map((s) => {
         if (s.id === studentId) {
           const newRecord: PointRecord = {
@@ -290,10 +368,29 @@ export default function App() {
     });
 
     saveStudentsData(updated);
-    playSimpleSynthSound('success');
+    
+    // Play celebratory or warning sound
+    playSimpleSynthSound(points >= 0 ? 'success' : 'warn');
+
+    // Trigger full-screen fireworks & confetti or warning rain FX
+    if (points > 0) {
+      setFxTrigger({ type: 'fireworks', timestamp: Date.now() });
+    } else if (points < 0) {
+      setFxTrigger({ type: 'rain', timestamp: Date.now() });
+    }
+
+    const selectedStudentsList = students.filter(s => selectedStudentIds.includes(s.id));
+
     setIsMultiSelectMode(false);
     setSelectedStudentIds([]);
-    alert(`已為所選的 ${selectedStudentIds.length} 位學生成功套用 ${points >= 0 ? '+' : ''}${points} 分！`);
+
+    // Open congratulations toast alert (non-blocking) with list of students, triggering alongside FX
+    setToastAlert({
+      studentsList: selectedStudentsList,
+      itemName,
+      points,
+      bulkRecordIds
+    });
   };
 
   // 2. SPECIFIC RECORD UNDO HANDLER
@@ -393,14 +490,10 @@ export default function App() {
     // Play chime sound
     playSimpleSynthSound('bell');
 
-    if (requestedCount === 1) {
-      // If only 1 requested, directly pop up their detail modal as prior experience
-      const drawnZero = items[0];
-      setLastDrawnStudent(drawnZero);
-      setSelectedDetailStudent(drawnZero);
-    } else {
-      // Pop up the multiple drawn modal list!
-      setDrawnStudents(items);
+    // Pop up the drawn modal to play the exciting spin and card-flip animation
+    setDrawnStudents(items);
+    if (items.length === 1) {
+      setLastDrawnStudent(items[0]);
     }
   };
 
@@ -941,15 +1034,25 @@ export default function App() {
       {toastAlert && (
         <RewardAlertToast
           student={toastAlert.student}
+          studentsList={toastAlert.studentsList}
           itemName={toastAlert.itemName}
           points={toastAlert.points}
           onUndo={() => {
-            // Revert action values
-            handleUndoSingleRecord(toastAlert.student.id, toastAlert.recordId);
+            // Revert action values for bulk or single entries
+            if (toastAlert.bulkRecordIds && toastAlert.bulkRecordIds.length > 0) {
+              toastAlert.bulkRecordIds.forEach(({ studentId, recordId }) => {
+                handleUndoSingleRecord(studentId, recordId);
+              });
+            } else if (toastAlert.student && toastAlert.recordId) {
+              handleUndoSingleRecord(toastAlert.student.id, toastAlert.recordId);
+            }
           }}
           onClose={() => setToastAlert(null)}
         />
       )}
+
+      {/* 4.5 FULL SCREEN SPECIAL FX CANVAS OVERLAY (Fireworks / Rain) */}
+      <FullScreenFX trigger={fxTrigger} />
 
       {/* 5. ADD INCOMING ROLL PROFILE */}
       {isAddStudentOpen && (
@@ -972,7 +1075,11 @@ export default function App() {
       {drawnStudents && (
         <DrawnStudentsModal
           students={drawnStudents}
+          allStudents={students}
           onClose={() => setDrawnStudents(null)}
+          onSingleSelected={(student) => {
+            setSelectedDetailStudent(student);
+          }}
           onEnterMultiSelect={(ids) => {
             setIsMultiSelectMode(true);
             setSelectedStudentIds(ids);
