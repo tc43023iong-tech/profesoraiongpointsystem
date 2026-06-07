@@ -16,6 +16,7 @@ import AddStudentModal from './components/AddStudentModal';
 import ResetScoresModal from './components/ResetScoresModal';
 import DrawnStudentsModal from './components/DrawnStudentsModal';
 import DailySummaryModal from './components/DailySummaryModal';
+import BatchScoreModal from './components/BatchScoreModal';
 import KeyCountdownModal from './components/KeyCountdownModal';
 import { FullScreenFX } from './components/FullScreenFX';
 
@@ -160,6 +161,7 @@ export default function App() {
   const [selectedChangeAvatarStudent, setSelectedChangeAvatarStudent] = useState<Student | null>(null);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
   const [isDailySummaryOpen, setIsDailySummaryOpen] = useState<boolean>(false);
+  const [isBatchScoreOpen, setIsBatchScoreOpen] = useState<boolean>(false);
   const [isAddStudentOpen, setIsAddStudentOpen] = useState<boolean>(false);
   const [isResetScoresOpen, setIsResetScoresOpen] = useState<boolean>(false);
 
@@ -389,6 +391,82 @@ export default function App() {
       studentsList: selectedStudentsList,
       itemName,
       points,
+      bulkRecordIds
+    });
+  };
+
+  // Score applying trigger for Batch Classroom Evaluate mode
+  const handleApplyBatchScores = (updates: { studentId: number; points: number }[], itemName: string) => {
+    if (updates.length === 0) return;
+    
+    const timestampStr = new Date().toLocaleString('zh-TW', { hour12: false });
+    let updated = [...students];
+    const bulkRecordIds: { studentId: number; recordId: string }[] = [];
+    const globalBufferAdditions: { studentId: number; recordId: string; points: number }[] = [];
+    
+    let hasPositive = false;
+    let hasNegative = false;
+
+    updates.forEach(({ studentId, points }) => {
+      if (points === 0) return;
+      
+      const recordId = Math.random().toString(36).substr(2, 9);
+      bulkRecordIds.push({ studentId, recordId });
+      globalBufferAdditions.push({ studentId, recordId, points });
+      
+      if (points > 0) hasPositive = true;
+      if (points < 0) hasNegative = true;
+
+      updated = updated.map((s) => {
+        if (s.id === studentId) {
+          const newRecord: PointRecord = {
+            id: recordId,
+            timestamp: timestampStr,
+            itemName,
+            points
+          };
+          
+          const scoreObj = points >= 0 
+            ? { goodScore: s.goodScore + points }
+            : { careScore: s.careScore + points };
+
+          return {
+            ...s,
+            ...scoreObj,
+            history: [...s.history, newRecord]
+          };
+        }
+        return s;
+      });
+    });
+
+    if (bulkRecordIds.length === 0) return;
+
+    saveStudentsData(updated);
+
+    // Add elements to global history buffer for undo
+    setGlobalHistoryBuffer((prev) => [...prev, ...globalBufferAdditions]);
+
+    // Play sounds & trigger FX based on what points were added
+    if (hasPositive && hasNegative) {
+      playSimpleSynthSound('success');
+      setFxTrigger({ type: 'fireworks', timestamp: Date.now() });
+    } else if (hasPositive) {
+      playSimpleSynthSound('success');
+      setFxTrigger({ type: 'fireworks', timestamp: Date.now() });
+    } else if (hasNegative) {
+      playSimpleSynthSound('warn');
+      setFxTrigger({ type: 'rain', timestamp: Date.now() });
+    }
+
+    // Trigger full screen custom modal / toast alerts for the list of modified students
+    const modifiedStudents = updated.filter(s => updates.some(u => u.studentId === s.id && u.points !== 0));
+    const avgPoints = updates.find(u => u.points !== 0)?.points || 0;
+
+    setToastAlert({
+      studentsList: modifiedStudents,
+      itemName,
+      points: avgPoints, // representing points for toast rendering
       bulkRecordIds
     });
   };
@@ -806,6 +884,16 @@ export default function App() {
               <span className="text-lg group-hover:scale-120 transition-transform">📅</span>
               <span className="text-[7.5px] font-sans -mt-0.5 font-bold">今日總結</span>
             </button>
+
+            {/* Batch Class Eval button */}
+            <button
+              onClick={() => setIsBatchScoreOpen(true)}
+              className="ml-2 w-12 h-12 bg-purple-50 hover:bg-purple-100 text-purple-700 border-3 border-purple-400 rounded-2xl shadow-[3px_3px_0px_0px_#a855f7] hover:shadow-[1.5px_1.5px_0px_0px_#a855f7] hover:translate-y-0.5 active:scale-90 transition-all flex flex-col items-center justify-center font-black cursor-pointer group"
+              title="一次填寫全班的加減分 ⚡"
+            >
+              <span className="text-lg group-hover:scale-120 transition-transform font-bold text-purple-650">⚡</span>
+              <span className="text-[7.5px] font-sans -mt-0.5 font-bold">全班群評</span>
+            </button>
           </div>
 
           {/* Middle: Multi Select Controls */}
@@ -1027,6 +1115,15 @@ export default function App() {
         <DailySummaryModal
           students={students}
           onClose={() => setIsDailySummaryOpen(false)}
+        />
+      )}
+
+      {/* 3.2 BATCH SCORING MODAL */}
+      {isBatchScoreOpen && (
+        <BatchScoreModal
+          students={students}
+          onApply={handleApplyBatchScores}
+          onClose={() => setIsBatchScoreOpen(false)}
         />
       )}
 

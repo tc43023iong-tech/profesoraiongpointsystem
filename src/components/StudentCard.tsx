@@ -25,6 +25,7 @@ export default function StudentCard({
   onChangeAvatarClick,
 }: StudentCardProps): React.JSX.Element {
   const currentTotal = student.goodScore + student.careScore; // careScore is negative
+  const needsIntervention = student.careScore <= -5; // custom negative warning threshold
  
   // Decide colored pencil backing based on student.id
   const sketchBgClass = 
@@ -67,16 +68,24 @@ export default function StudentCard({
       }}
       className={`relative bg-white border border-black/15 rounded-2xl p-4 transition-all duration-200 cursor-pointer ${
         isSelected 
-          ? 'ring-4 ring-pink-400 bg-pink-50/40 border-pink-500 scale-[1.02]' 
-          : 'bg-[#fffdfa] hover:scale-102 hover:border-black/30'
+          ? 'ring-4 ring-pink-405 bg-pink-50/40 border-pink-500 scale-[1.02]' 
+          : needsIntervention
+            ? 'ring-4 ring-rose-300 bg-rose-50/15 border-rose-450 animate-[pulse_2.5s_infinite]'
+            : 'bg-[#fffdfa] hover:scale-102 hover:border-black/30'
       } ${tiltClass} overflow-hidden`}
     >
       {/* Top Header Row within Card */}
       <div className="flex justify-between items-center mb-1">
         {/* Student Roll/Number and Rank Badge */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 flex-wrap gap-y-1">
           <span className="text-xl font-black font-playful text-[#eb725a] drop-shadow-sm">#{student.id}</span>
           {renderRankBadge()}
+          {needsIntervention && (
+            <span className="bg-rose-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full animate-bounce flex items-center space-x-0.5" title="待改進點數較多，需要關懷指導！">
+              <span>⚠️</span>
+              <span>需關懷</span>
+            </span>
+          )}
         </div>
  
         {/* Change look & Total Score summary badge */}
