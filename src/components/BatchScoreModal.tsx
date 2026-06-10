@@ -21,17 +21,6 @@ export default function BatchScoreModal({ students, onApply, onClose }: BatchSco
     return initial;
   });
 
-  // Predefined quick reason options
-  const quickReasons = [
-    '🎒 課堂表現優異',
-    '🌟 專注聽講',
-    '🤝 小組積極合作',
-    '🧹 熱心服務打掃',
-    '📝 準時完成作業',
-    '⚠️ 課堂分心說話',
-    '🚫 未能配合指令',
-  ];
-
   // Quick preset adjust functions
   const handleSetAll = (val: number) => {
     const updated: Record<number, number> = {};
@@ -76,11 +65,6 @@ export default function BatchScoreModal({ students, onApply, onClose }: BatchSco
 
     if (updates.length === 0) {
       alert('請至少為一位學生輸入不為 0 的調整分數！');
-      return;
-    }
-
-    if (!itemName.trim()) {
-      alert('請填寫或選擇評分項目名稱（例如：課堂行為、回答問題等）');
       return;
     }
 
@@ -129,40 +113,9 @@ export default function BatchScoreModal({ students, onApply, onClose }: BatchSco
         </div>
 
         {/* TOP CONFIGURATION BOX */}
-        <div className="bg-[#FAF5FF] p-4 border-b-4 border-slate-900 space-y-4">
-          {/* Reason Choice Section */}
-          <div>
-            <label className="block text-xs font-black text-purple-950 uppercase tracking-wider mb-2">
-              📝 評分說明／項目原因：
-            </label>
-            <input
-              type="text"
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              placeholder="請輸入評分事由，例如：積極回答問題、幫忙擦黑板、分心..."
-              className="w-full px-4 py-2.5 bg-white border-3 border-slate-900 rounded-xl font-heading text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 font-black shadow-[3px_3px_0px_0px_#a855f7]"
-            />
-            {/* Quick preset tags */}
-            <div className="flex flex-wrap gap-2 mt-2.5">
-              {quickReasons.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setItemName(r.substring(2))} // strips off the emoji
-                  className={`text-xs font-extrabold px-3 py-1.5 rounded-xl border-2 border-slate-900 shadow-[1.5px_1.5px_0px_0px_rgba(30,41,59,1)] transition hover:-translate-y-0.5 active:translate-y-0 cursor-pointer ${
-                    itemName === r.substring(2)
-                      ? 'bg-purple-500 text-white'
-                      : 'bg-white text-slate-700 hover:bg-purple-50'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-
+        <div className="bg-[#FAF5FF] p-4 border-b-4 border-slate-900">
           {/* Quick presets row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-dashed border-purple-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-xs font-black text-slate-600 flex items-center gap-1">
               <Sparkles className="w-4 h-4 text-purple-600 animate-spin" />
               全班一鍵同步：

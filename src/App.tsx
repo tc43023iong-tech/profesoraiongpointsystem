@@ -625,8 +625,31 @@ export default function App() {
   // 7. EXPORT DATA FILE
   const handleExportDataFile = async () => {
     try {
-      const dataStr = JSON.stringify(students, null, 2);
-      const fileName = `Miss_Iongs_Class_${currentClass}_ScoreStats.json`;
+      const classesToExport: ClassID[] = ['P5A', 'P5B', 'P5C'];
+      const backupData: Record<ClassID, Student[]> = {} as any;
+      
+      classesToExport.forEach((classId) => {
+        const storageKey = `miss_iong_class_students_${classId}`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          try {
+            backupData[classId] = JSON.parse(saved);
+          } catch (e) {
+            backupData[classId] = getInitialClassData(classId);
+          }
+        } else {
+          backupData[classId] = getInitialClassData(classId);
+        }
+      });
+
+      const exportPayload = {
+        backupType: 'miss_iong_all_classes_backup',
+        exportedAt: new Date().toLocaleString('zh-TW', { hour12: false }),
+        classes: backupData
+      };
+
+      const dataStr = JSON.stringify(exportPayload, null, 2);
+      const fileName = `Miss_Iongs_All_Classes_Backup.json`;
 
       // 嘗試使用現代 File System Access API 以便瀏覽器能彈出對話框問學生資料要存檔在電腦哪裡
       if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
@@ -634,7 +657,7 @@ export default function App() {
           const handle = await (window as any).showSaveFilePicker({
             suggestedName: fileName,
             types: [{
-              description: 'JSON 學習成績單備份 (JSON Files)',
+              description: 'JSON 全班級學習成績單備份 (JSON Files)',
               accept: {
                 'application/json': ['.json'],
               }
@@ -657,7 +680,7 @@ export default function App() {
       // 一般瀏覽器下載備份 (Legacy fallback download)
       const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
       const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute('href',       dataUri);
+      downloadAnchor.setAttribute('href', dataUri);
       downloadAnchor.setAttribute('download', fileName);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
@@ -676,18 +699,57 @@ export default function App() {
     fileReader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target?.result as string);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // simple check keyfields
+        
+        // Scenario A: Standard overall-classes backup
+        if (parsed && typeof parsed === 'object' && parsed.backupType === 'miss_iong_all_classes_backup' && parsed.classes) {
+          const classesData = parsed.classes;
+          const classesImported: string[] = [];
+          
+          ['P5A', 'P5B', 'P5C'].forEach((classId) => {
+            const list = classesData[classId];
+            if (Array.isArray(list) && list.length > 0) {
+              const valid = list.every((s: any) => 'id' in s && 'name' in s && 'goodScore' in s && 'careScore' in s);
+              if (valid) {
+                const storageKey = `miss_iong_class_students_${classId}`;
+                localStorage.setItem(storageKey, JSON.stringify(list));
+                classesImported.push(classId);
+              }
+            }
+          });
+
+          if (classesImported.length > 0) {
+            // Refresh current matching class state if it was updated
+            if (classesImported.includes(currentClass)) {
+              const updatedActiveListStr = localStorage.getItem(`miss_iong_class_students_${currentClass}`);
+              if (updatedActiveListStr) {
+                setStudents(JSON.parse(updatedActiveListStr));
+              }
+            }
+            alert(`🎉 成功匯入全部班級 (${classesImported.join(', ')}) 的學生成績單與歷史備份！`);
+          } else {
+            alert('檔案結構不完整，未能成功讀取任何班級資料。');
+          }
+        } 
+        // Scenario B: Direct array legacy file
+        else if (Array.isArray(parsed) && parsed.length > 0) {
           const valid = parsed.every((s) => 'id' in s && 'name' in s && 'goodScore' in s && 'careScore' in s);
           if (valid) {
-            saveStudentsData(parsed);
-            alert(`成功導入並還原 ${parsed.length} 位學生的成績單！`);
+            const confirmImport = window.confirm(`偵測到此檔案為個別班級的舊版單一備份檔案，內含 ${parsed.length} 位學生紀錄。\n\n確定將其導入至當前的 ${currentClass} 班級嗎？`);
+            if (confirmImport) {
+              saveStudentsData(parsed);
+              alert(`成功導入並還原 ${parsed.length} 位學生的成績單！`);
+            }
           } else {
-            alert('導入失败：JSON 結構不符合格式，請提供由本系統匯出之有效備份檔案！');
+            alert('導入失敗：JSON 結構不符合格式，請提供有效之學生資料備份檔案！');
           }
+        } else {
+          alert('導入失敗：不支援的備份檔案格式，請上傳由本系統匯出之有效備份 JSON 檔。');
         }
       } catch (err) {
         alert('文件讀取錯誤：無法正確解析為 JSON 文件。');
+      } finally {
+        // Reset file input value so same file can be selected again
+        e.target.value = '';
       }
     };
     fileReader.readAsText(files[0]);
@@ -801,16 +863,16 @@ export default function App() {
           <button
             onClick={handleExportDataFile}
             className="px-4 py-3 bg-[#f0fdf4] hover:bg-emerald-100 border-3 border-slate-800 text-emerald-800 text-xs font-black rounded-2xl shadow-[3.5px_3.5px_0px_0px_#3f3935] hover:shadow-[1.5px_1.5px_0px_0px_#3f3935] hover:translate-y-0.5 transition-all flex items-center space-x-1.5 active:scale-95 cursor-pointer"
-            title="把小朋友的加減分成績單存起來"
+            title="一次匯出全部班級 (P5A, P5B, P5C) 的成績單紀錄至單一 JSON 檔案"
           >
             <Download className="w-4 h-4 stroke-[3px] text-emerald-650" />
-            <span>備份</span>
+            <span>全班備份</span>
           </button>
 
           {/* Import File Button wrapper */}
           <label className="px-4 py-3 bg-[#ecfeff] hover:bg-cyan-100 border-3 border-slate-800 text-cyan-850 text-xs font-black rounded-2xl shadow-[3.5px_3.5px_0px_0px_#3f3935] hover:shadow-[1.5px_1.5px_0px_0px_#3f3935] hover:translate-y-0.5 cursor-pointer transition-all flex items-center space-x-1.5 active:scale-95">
             <Upload className="w-4 h-4 stroke-[3px] text-cyan-650" />
-            <span>上傳</span>
+            <span>全班匯入</span>
             <input
               type="file"
               accept=".json"
