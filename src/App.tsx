@@ -19,6 +19,7 @@ import DailySummaryModal from './components/DailySummaryModal';
 import BatchScoreModal from './components/BatchScoreModal';
 import KeyCountdownModal from './components/KeyCountdownModal';
 import { FullScreenFX } from './components/FullScreenFX';
+import BackgroundMusicPlayer from './components/BackgroundMusicPlayer';
 
 // Web audio api playful synthesizer
 function playSimpleSynthSound(type: 'success' | 'warn' | 'bell') {
@@ -1273,6 +1274,9 @@ export default function App() {
           onClose={() => setActiveShortcutModal(null)}
         />
       )}
+
+      {/* 9. GLOBAL BACKGROUND MUSIC CONTROLLER (Floating Bubble) */}
+      <BackgroundMusicPlayer />
 
     </div>
   );
